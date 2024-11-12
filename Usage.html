@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Electricity Consumption Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --alert-color: #e74c3c;
+            --background-light: #ecf0f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-light);
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .real-time-dashboard {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+
+        .main-panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .real-time-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: scale(1.05);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .real-time-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .alert-panel {
+            background-color: #fff3cd;
+            border-left: 5px solid var(--alert-color);
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .device-consumption {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-active {
+            background-color: #2ecc71;
+        }
+
+        .status-inactive {
+            background-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="real-time-dashboard">
+        <div class="main-panel">
+            <div class="real-time-metrics">
+                <div class="metric-card">
+                    <div id="totalConsumption" class="metric-value">0 kWh</div>
+                    <div class="metric-label">Total Consumption</div>
+                </div>
+                <div class="metric-card">
+                    <div id="currentPower" class="metric-value">0 W</div>
+                    <div class="metric-label">Current Power</div>
+                </div>
+                <div class="metric-card">
+                    <div id="powerFactor" class="metric-value">0.00</div>
+                    <div class="metric-label">Power Factor</div>
+                </div>
+                <div class="metric-card">
+                    <div id="carbonFootprint" class="metric-value">0 kg CO2</div>
+                    <div class="metric-label">Carbon Footprint</div>
+                </div>
+            </div>
+
+            <div class="real-time-charts">
+                <div class="chart-container">
+                    <h3>Real-Time Power Consumption</h3>
+                    <canvas id="powerConsumptionChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Device Power Distribution</h3>
+                    <canvas id="deviceDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="alert-panel" id="alertPanel">
+                <strong>Alerts:</strong> 
+                <span id="alertMessage">No active alerts</span>
+            </div>
+        </div>
+
+        <div class="main-panel">
+            <h2>Device Consumption</h2>
+            <div class="device-consumption" id="deviceConsumption">
+                <!-- Device consumption will be dynamically added -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    class RealTimeElectricityAnalyzer {
+        constructor() {
+            this.powerConsumptionChart = null;
+            this.deviceDistributionChart = null;
+            this.consumptionData = {
+                timestamps: [],
+                powerValues: []
+            };
+            this.devices = [
+                { name: 'Refrigerator', baseConsumption: 100, status: true },
+                { name: 'Air Conditioner', baseConsumption: 1500, status: true },
+                { name: 'Washing Machine', baseConsumption: 500, status: false },
+                { name: 'Lighting', baseConsumption: 200, status: true },
+                { name: 'Television', baseConsumption: 150, status: true }
+            ];
+
+            this.initializeCharts();
+            this.startRealTimeMonitoring();
+            this.renderDeviceConsumption();
+        }
+
+        initializeCharts() {
+            const powerCtx = document.getElementById('powerConsumptionChart').getContext('2d');
+            const deviceCtx = document.getElementById('deviceDistributionChart').getContext('2d');
+
+            // Power Consumption Chart
+            this.powerConsumptionChart = new Chart(powerCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Power Consumption (W)',
+                        data: [],
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { display: true },
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'Power (W)' }
+                        }
+                    }
+                }
+            });
+
+            // Device Distribution Chart
+            this.deviceDistributionChart = new Chart(deviceCtx, {
+                type: 'pie',
+                data: {
+                    labels: this.devices.map(d => d.name),
+                    datasets: [{
+                        data: this.devices.map(d => d.baseConsumption),
+                        backgroundColor: [
+                            'rgba(231, 76, 60, 0.6)',
+                            'rgba(46, 204, 113, 0.6)',
+                            'rgba(52, 152, 219, 0.6)',
+                            'rgba(241, 196,  15, 0.6)',
+                            'rgba(155, 89, 182, 0.6)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    }
+                }
+            });
+        }
+
+        startRealTimeMonitoring() {
+            setInterval(() => {
+                this.updateMetrics();
+                this.updateCharts();
+            }, 2000); // Update every 2 seconds
+        }
+
+        updateMetrics() {
+            const totalConsumption = this.calculateTotalConsumption();
+            const currentPower = this.calculateCurrentPower();
+            const powerFactor = this.calculatePowerFactor();
+            const carbonFootprint = this.calculateCarbonFootprint(totalConsumption);
+
+            document.getElementById('totalConsumption').textContent = `${totalConsumption.toFixed(2)} kWh`;
+            document.getElementById('currentPower').textContent = `${currentPower.toFixed(2)} W`;
+            document.getElementById('powerFactor').textContent = powerFactor.toFixed(2);
+            document.getElementById('carbonFootprint').textContent = `${carbonFootprint.toFixed(2)} kg CO2`;
+
+            this.checkAlerts(currentPower);
+        }
+
+        calculateTotalConsumption() {
+            return this.devices.reduce((total, device) => {
+                return total + (device.status ? device.baseConsumption : 0);
+            }, 0);
+        }
+
+        calculateCurrentPower() {
+            return this.devices.reduce((total, device) => {
+                return total + (device.status ? device.baseConsumption : 0);
+            }, 0);
+        }
+
+        calculatePowerFactor() {
+            // Simulating a power factor calculation
+            return Math.random() * 0.9 + 0.1; // Between 0.1 and 1
+        }
+
+        calculateCarbonFootprint(totalConsumption) {
+            const carbonFactor = 0.5; // kg CO2 per kWh
+            return totalConsumption * carbonFactor;
+        }
+
+        checkAlerts(currentPower) {
+            const alertPanel = document.getElementById('alertPanel');
+            const alertMessage = document.getElementById('alertMessage');
+
+            if (currentPower > 2000) {
+                alertMessage.textContent = "Warning: High power consumption!";
+                alertPanel.style.display = "block";
+            } else {
+                alertMessage.textContent = "No active alerts";
+                alertPanel.style.display = "none";
+            }
+        }
+
+        updateCharts() {
+            const currentTime = new Date().toLocaleTimeString();
+            const currentPower = this.calculateCurrentPower();
+
+            this.consumptionData.timestamps.push(currentTime);
+            this.consumptionData.powerValues.push(currentPower);
+
+            if (this.consumptionData.timestamps.length > 10) {
+                this.consumptionData.timestamps.shift();
+                this.consumptionData.powerValues.shift();
+            }
+
+            this.powerConsumptionChart.data.labels = this.consumptionData.timestamps;
+            this.powerConsumptionChart.data.datasets[0].data = this.consumptionData.powerValues;
+            this.powerConsumptionChart.update();
+
+            this.deviceDistributionChart.data.datasets[0].data = this.devices.map(d => d.status ? d.baseConsumption : 0);
+            this.deviceDistributionChart.update();
+        }
+
+        renderDeviceConsumption() {
+            const deviceConsumptionContainer = document.getElementById('deviceConsumption');
+            deviceConsumptionContainer.innerHTML = '';
+
+            this.devices.forEach(device => {
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-item';
+                deviceItem.innerHTML = `
+                    <span>${device.name}</span>
+                    <span class="status-indicator ${device.status ? 'status-active' : 'status-inactive'}"></span>
+                    <span>${device.baseConsumption} W</span>
+                `;
+                deviceConsumptionContainer.appendChild(deviceItem);
+            });
+        }
+    }
+
+    const realTimeElectricityAnalyzer = new RealTimeElectricityAnalyzer();
+    </script>
+</body>
+</html>

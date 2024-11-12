@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Intrusion Detection and Prevention System (IDPS)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --alert-critical: #e74c3c;
+            --alert-warning: #f39c12;
+            --alert-info: #3498db;
+            --background-dark: #2c3e50;
+            --background-light: #ecf0f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-light);
+            line-height: 1.6;
+        }
+
+        .idps-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .idps-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+
+        .status-safe {
+            background-color: #2ecc71;
+        }
+
+        .status-warning {
+            background-color: #f39c12;
+        }
+
+        .status-critical {
+            background-color: #e74c3c;
+        }
+
+        .idps-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .threat-detection-panel {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .threat-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .threat-severity {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .severity-critical {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .severity-warning {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: #f39c12;
+        }
+
+        .severity-info {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .network-topology {
+            position: relative;
+            height: 300px;
+            background-color: #f4f4f4;
+            border-radius: 10px;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--alert-critical);
+            color: white;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="idps-container">
+        <div class="idps-header">
+            <h1>Intrusion Detection and Prevention System (IDPS)</h1>
+            <div class="system-status">
+                <div id="systemStatusIndicator" class="status-indicator status-safe"></div>
+                <span id="systemStatusText">System Status: Safe</span>
+            </div>
+        </div>
+
+        <div class="idps-dashboard">
+            <!-- Threat Detection Panel -->
+            <div class="panel threat-detection-panel">
+                <h2>Threat Detection Log</h2>
+                <div id="threatDetectionLog">
+                    <!-- Threat entries will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Network Topology Panel -->
+            <div class="panel">
+                <h2>Network Topology</h2>
+                <div id="networkTopology" class="network-topology">
+                    <!-- Network nodes will be dynamically added -->
+                </div>
+
+                <div class="control-panel">
+                    <button class="btn btn-primary" onclick="idpsSystem.startMonitoring()">
+                        Start Monitoring
+                    </button>
+                    <button class="btn btn-danger" onclick="idpsSystem.stopMonitoring()">
+                        Stop Monitoring
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    class IntrusionDetectionPreventionSystem {
+        constructor() {
+            this.threats = [];
+            this.monitoringInterval = null;
+            this.networkNodes = [];
+            this.initializeNetworkTopology();
+        }
+
+        initializeNetworkTopology() {
+            const topology = document.getElementById('networkTopology');
+            const nodeConfigurations = [
+                { x: 50, y: 50, label: 'FW' },   // Firewall
+                { x: 200, y: 100, label: 'DB' }, // Database
+                { x: 350, y: 50, label: 'WEB' }, // Web Server
+                { x: 500, y: 150, label: 'APP' } // Application Server
+            ];
+
+            nodeConfigurations.forEach(node => {
+                const nodeElement = document.createElement('div');
+                nodeElement.classList.add('network-node');
+                nodeElement.style.left = `${node.x}px`;
+                nodeElement.style.top = `${node.y}px`;
+                nodeElement.textContent = node.label;
+                topology.appendChild(nodeElement);
+            });
+        }
+
+        detectThreat() {
+            const threatTypes = [
+                'SQL Injection',
+                'DDoS Attack',
+                'Malware Intrusion',
+                'Unauthorized Access',
+                'Phishing Attempt',
+                'Buffer Overflow',
+                'Cross-Site Scripting'
+            ];
+
+            const severityLevels = [
+                { name: 'Critical', probability: 0.2 },
+                { name: 'Warning', probability: 0.5 },
+                { name: 'Info', probability: 0.3 }
+            ];
+
+            // Probabilistic threat detection
+            const randomThreat = threatTypes[Math.floor(Math.random() * threatTypes.length)];
+            const randomSeverity = this.getRandomSeverity(severityLevels);
+            const threatEntry = {
+                id: Date.now(),
+                type: randomThreat,
+                severity: randomSeverity.name,
+                timestamp: new Date().toISOString()
+            };
+            this.threats.push(threatEntry);
+            this.updateThreatLog(threatEntry);
+            this.updateSystemStatus(randomSeverity.name);
+        }
+
+        getRandomSeverity(severityLevels) {
+            const randomValue = Math.random();
+            let cumulativeProbability = 0;
+            for (const level of severityLevels) {
+                cumulativeProbability += level.probability;
+                if (randomValue <= cumulativeProbability) {
+                    return level;
+                }
+            }
+            return severityLevels[severityLevels.length - 1]; // Default to last level
+        }
+
+        updateThreatLog(threatEntry) {
+            const threatLog = document.getElementById('threatDetectionLog');
+            const entryElement = document.createElement('div');
+            entryElement.classList.add('threat-entry');
+            entryElement.innerHTML = `
+                <span>${new Date(threatEntry.timestamp).toLocaleString()}</span>
+                <span class="threat-severity severity-${threatEntry.severity.toLowerCase()}">${threatEntry.severity}</span>
+                <span>${threatEntry.type}</span>
+            `;
+            threatLog.appendChild(entryElement);
+        }
+
+        updateSystemStatus(severity) {
+            const statusIndicator = document.getElementById('systemStatusIndicator');
+            const statusText = document.getElementById('systemStatusText');
+            if (severity === 'Critical') {
+                statusIndicator.className = 'status-indicator status-critical';
+                statusText.textContent = 'System Status: Critical Threat Detected!';
+            } else if (severity === 'Warning') {
+                statusIndicator.className = 'status-indicator status-warning';
+                statusText.textContent = 'System Status: Warning!';
+            } else {
+                statusIndicator.className = 'status-indicator status-safe';
+                statusText.textContent = 'System Status: Safe';
+            }
+        }
+
+        startMonitoring() {
+            if (!this.monitoringInterval) {
+                this.monitoringInterval = setInterval(() => this.detectThreat(), 3000);
+            }
+        }
+
+        stopMonitoring() {
+            clearInterval(this.monitoringInterval);
+            this.monitoringInterval = null;
+            this.updateSystemStatus('Info');
+        }
+    }
+
+    const idpsSystem = new IntrusionDetectionPreventionSystem();
+    </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microgrid Energy Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    body {
+    
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 20px;
+    }
+    .tab {
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .tab.active {
+      background-color: #ddd;
+    }
+    .tab-content {
+      margin-top: 20px;
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Microgrid Energy Dashboard</h1>
+
+    <!-- Energy Overview and Grid Interaction -->
+    <div class="container">
+      <div class="card">
+        <h2>Energy Overview</h2>
+        <canvas id="energyOverviewChart" height="300"></canvas>
+      </div>
+      <div class="card">
+        <h2>Grid Interaction</h2>
+        <canvas id="gridInteractionChart" height="300"></canvas>
+      </div>
+    </div>
+
+    <!-- Energy Sources -->
+    <div class="card">
+      <h2>Energy Sources</h2>
+      <canvas id="energySourcesChart" height="300"></canvas>
+    </div>
+
+    <!-- Tabs for Solar, Wind, Battery, Grid -->
+    <div class="tabs">
+      <div class="tab active" data-tab="solar">Solar</div>
+      <div class="tab" data-tab="wind">Wind</div>
+      <div class="tab" data-tab="battery">Battery</div>
+      <div class="tab" data-tab="grid">Grid</div>
+    </div>
+    <div id="solar" class="tab-content active">
+      <p>Solar panel efficiency and output details...</p>
+    </div>
+    <div id="wind" class="tab-content">
+      <p>Wind turbine performance and generation...</p>
+    </div>
+    <div id="battery" class="tab-content">
+      <p>Battery storage levels and charge/discharge rates...</p>
+    </div>
+    <div id="grid" class="tab-content">
+      <p>Grid connection status and power flow...</p>
+    </div>
+  </div>
+
+  <script>
+    // Data for charts
+    const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+      hour: i,
+      consumption: Math.random() * 5 + 2,
+      production: Math.random() * 6 + 1,
+      gridInteraction: Math.random() * 2 - 1,
+    }));
+
+    const sourceData = [
+      { name: 'Solar', value: 45 },
+      { name: 'Wind', value: 30 },
+      { name: 'Battery', value: 15 },
+      { name: 'Grid', value: 10 },
+    ];
+
+    // Energy Overview Chart (Area Chart Equivalent)
+    const energyOverviewCtx = document.getElementById('energyOverviewChart').getContext('2d');
+    const energyOverviewChart = new Chart(energyOverviewCtx, {
+      type: 'line',
+      data: {
+        labels: hourlyData.map(data => data.hour + ':00'),
+        datasets: [
+          {
+            label: 'Consumption',
+            data: hourlyData.map(data => data.consumption),
+            borderColor: '#8884d8',
+            backgroundColor: 'rgba(136, 132, 216, 0.5)',
+            fill: true,
+          },
+          {
+            label: 'Production',
+            data: hourlyData.map(data => data.production),
+            borderColor: '#82ca9d',
+            backgroundColor: 'rgba(130, 202, 157, 0.5)',
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Hour' } },
+          y: { title: { display: true, text: 'kWh' } },
+        },
+      },
+    });
+
+    // Grid Interaction Chart (Bar Chart)
+    const gridInteractionCtx = document.getElementById('gridInteractionChart').getContext('2d');
+    const gridInteractionChart = new Chart(gridInteractionCtx, {
+      type: 'bar',
+      data: {
+        labels: hourlyData.map(data => data.hour + ':00'),
+        datasets: [
+          {
+            label: 'Grid Interaction',
+            data: hourlyData.map(data => data.gridInteraction),
+            backgroundColor: '#ffc658',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Hour' } },
+          y: { title: { display: true, text: 'Interaction (kWh)' } },
+        },
+      },
+    });
+
+    // Energy Sources Pie Chart
+    const energySourcesCtx = document.getElementById('energySourcesChart').getContext('2d');
+    const energySourcesChart = new Chart(energySourcesCtx, {
+      type: 'pie',
+      data: {
+        labels: sourceData.map(source => source.name),
+        datasets: [
+          {
+            data: sourceData.map(source => source.value),
+            backgroundColor: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+      },
+    });
+
+    // Tab switching logic
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const tabId = tab.getAttribute('data-tab');
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

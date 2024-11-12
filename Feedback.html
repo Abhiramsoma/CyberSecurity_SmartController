@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprehensive Complaint Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .complaint-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .complaint-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+        }
+
+        .status-open { background-color: #ffc107; color: white; }
+        .status-in-progress { background-color: #2196F3; color: white; }
+        .status-resolved { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <!-- Complaint Submission Form -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Submit New Complaint
+                    </div>
+                    <div class="card-body">
+                        <form id="complaintForm">
+                            <!-- Form fields similar to previous example -->
+                            <div class="mb-3">
+                                <label class="form-label">Complaint Category</label>
+                                <select class="form-select" id="complaintCategory" required>
+                                    <option value="">Select Category</option>
+                                    <optgroup label="Technical Issues">
+                                        <option value="power_outage">Power Outage</option>
+                                        <option value="voltage_fluctuation">Voltage Fluctuation</option>
+                                        <option value="meter_problem">Meter Problem</option>
+                                    </optgroup>
+                                    <optgroup label="Billing Issues">
+                                        <option value="billing_discrepancy">Billing Discrepancy</option>
+                                        <option value="payment_issue">Payment Issue</option>
+                                    </optgroup>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Severity</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="severity" id="lowSeverity" value="low" required>
+                                    <label class="btn btn-outline-success" for="lowSeverity">Low</label>
+
+                                    <input type="radio" class="btn-check" name="severity" id="mediumSeverity" value="medium">
+                                    <label class="btn btn-outline-warning" for="mediumSeverity">Medium</label>
+
+                                    <input type="radio" class="btn-check" name="severity" id="highSeverity" value="high">
+                                    <label class="btn btn-outline-danger" for="highSeverity">High</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Detailed Description</label>
+                                <textarea class="form-control" id="complaintDescription" rows="4" required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Submit Complaint</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Complaint Statistics -->
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        Complaint Analytics
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h5 id="totalComplaints">0</h5>
+                                <small>Total</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 id="resolvedComplaints">0</h5>
+                                <small>Resolved</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 id="pendingComplaints">0</h5>
+                                <small>Pending</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaint History -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        Complaint History
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-light" id="filterAll">All</button>
+                            <button class="btn btn-sm btn-light" id="filterOpen">Open</button>
+                            <button class="btn btn-sm btn-light" id="filterResolved">Resolved</button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="complaintHistoryContainer">
+                        <!-- Complaints will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script>
+    class ComplaintManagementSystem {
+        constructor() {
+            this.complaints = [];
+            this.initializeEventListeners();
+        }
+
+        initializeEventListeners() {
+            // Complaint Submission Form
+            document.getElementById('complaintForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitComplaint();
+            });
+
+            // Filtering Buttons
+            document.getElementById('filterAll').addEventListener('click', () => this.renderComplaints('all'));
+            document.getElementById('filterOpen').addEventListener('click', () => this.renderComplaints('open'));
+            document.getElementById('filterResolved').addEventListener('click', () => this.renderComplaints('resolved'));
+        }
+
+        submitComplaint() {
+            // Validate form inputs
+            const category = document.getElementById('complaintCategory').value;
+            const severity = document.querySelector('input[name="severity"]:checked')?.value;
+            const description = document.getElementById('complaintDescription').value;
+
+            if (!category || !severity || !description) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Incomplete Form',
+                    text: 'Please fill in all required fields.'
+                });
+                return;
+            }
+
+            // Create complaint object
+            const complaint = {
+                id: this.generateUniqueId(),
+                category,
+                severity,
+                description,
+                timestamp: new Date(),
+                status: 'open'
+            };
+
+            // Add complaint to list
+            this.complaints.push(complaint);
+
+            // Update UI
+            this.renderComplaints();
+            this.updateStatistics();
+            this.resetForm();
+
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Complaint Submitted',
+                text: `Complaint ${complaint.id} has been successfully logged.` });
+        }
+
+        generateUniqueId() {
+            return 'CMP-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        renderComplaints(filter = 'all') {
+            const container = document.getElementById('complaintHistoryContainer');
+            container.innerHTML = '';
+
+            const filteredComplaints = this.complaints.filter(complaint => 
+                filter === 'all' || complaint.status === filter
+            );
+
+            filteredComplaints.sort((a, b) => b.timestamp - a.timestamp).forEach(complaint => {
+                const complaintCard = document.createElement('div');
+                complaintCard.className = 'complaint-card';
+                complaintCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>${complaint.id}</h5>
+                        <span class="status-badge status-${complaint.status}">${complaint.status.toUpperCase()}</span>
+                    </div>
+                    <p><strong>Category:</strong> ${complaint.category}</p>
+                    <p><strong>Severity:</strong> ${complaint.severity.toUpperCase()}</p>
+                    <p><strong>Description:</strong> ${complaint.description}</p>
+                    <p><strong>Submitted:</strong> ${complaint.timestamp.toLocaleString()}</p>
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-success me-2" onclick="complaintManagementSystem.resolveComplaint('${complaint.id}')">Resolve</button>
+                        <button class="btn btn-sm btn-danger" onclick="complaintManagementSystem.deleteComplaint('${complaint.id}')">Delete</button>
+                    </div>
+                `;
+                container.appendChild(complaintCard);
+            });
+        }
+
+        updateStatistics() {
+            document.getElementById('totalComplaints').textContent = this.complaints.length;
+            document.getElementById('resolvedComplaints').textContent = this.complaints.filter(c => c.status === 'resolved').length;
+            document.getElementById('pendingComplaints').textContent = this.complaints.filter(c => c.status === 'open').length;
+        }
+
+        resetForm() {
+            document.getElementById('complaintForm').reset();
+            document.querySelectorAll('input[name="severity"]').forEach(input => input.checked = false);
+        }
+
+        resolveComplaint(id) {
+            const complaint = this.complaints.find(c => c.id === id);
+            if (complaint) {
+                complaint.status = 'resolved';
+                this.renderComplaints();
+                this.updateStatistics();
+                Swal.fire('Resolved', `Complaint ${id} has been marked as resolved.`, 'success');
+            }
+        }
+
+        deleteComplaint(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, keep it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.complaints = this.complaints.filter(c => c.id !== id);
+                    this.renderComplaints();
+                    this.updateStatistics();
+                    Swal.fire('Deleted!', `Complaint ${id} has been deleted.`, 'success');
+                }
+            });
+        }
+    }
+
+    const complaintManagementSystem = new ComplaintManagementSystem();
+    </script>
+</body>
+</html>

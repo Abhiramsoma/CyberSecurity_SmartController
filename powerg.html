@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Plant Monitoring Dashboard</title>
+    <link rel="stylesheet" href="powerg.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1 class="h1">Power System Operator Dashboard</h1>
+                <div class="grid-container">
+            <!-- Total Capacity -->
+            <div class="card total-capacity">
+                <h2>Total Capacity (MW)</h2>
+                <h1>634,000</h1>
+            </div>
+
+            <!-- Energy Production Efficiency -->
+            <div class="card energy-efficiency">
+                 <h2>Energy Production Efficiency</h2>
+                 <h1>90.79%</h1>
+                <p>Generated (MW): 371,706</p>
+                 <p>Target (MW): 409,427</p>
+            </div>
+
+            <!-- Avg. Efficiency of Turbines (Bar Graph) -->
+            <div class="card turbine-efficiency">
+                <h2>Avg. Efficiency of Turbines</h2>
+                <canvas id="turbineEfficiencyChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="grid-container">
+            <!-- System Frequency Gauge -->
+            <div class="gauge-card">
+                <div class="card-header">
+                    <h2>System Frequency</h2>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-background"></div>
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-needle1"></div>
+                    <div class="gauge-center"></div>
+                    <div class="gauge-labels">
+                        <span class="label left">48</span>
+                        <span class="label center">50</span>
+                        <span class="label right">52</span>
+                    </div>
+                </div>
+                <div class="gauge-value">49.66 Hz</div>
+            </div>
+
+            <!-- Ambient Temperature Gauge -->
+            <div class="gauge-card">
+                <div class="card-header">
+                    <h2>Power Factor</h2>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-background"></div>
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-needle2"></div>
+                    <div class="gauge-center"></div>
+                    <div class="gauge-labels">
+                        <span class="label left">0</span>
+                        <span class="label center">0.5</span>
+                        <span class="label right">1</span>
+                    </div>
+                </div>
+                <div class="gauge-value">0.9</div>
+            </div>
+
+            <!-- Relative Humidity Gauge -->
+            <div class="gauge-card">
+                <div class="card-header">
+                    <h2>Total Hormonic Distortion</h2>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-background"></div>
+                    <div class="gauge-arc"></div>
+                    <div class="gauge-needle3"></div>
+                    <div class="gauge-center"></div>
+                    <div class="gauge-labels">
+                        <span class="label left">0</span>
+                        <span class="label center">5</span>
+                        <span class="label right">10</span>
+                    </div>
+                </div>
+                <div class="gauge-value">4.5 %</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="powerg.js"></script>
+
+</body>
+</html>

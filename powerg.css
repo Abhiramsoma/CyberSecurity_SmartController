@@ -1,0 +1,206 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-image:url("https://images.unsplash.com/photo-1517925035435-7976539b920d?q=80&w=1776&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D.png");
+	background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+head{
+    padding: 20px;
+}
+h1 {
+    text-align:center;
+    padding-bottom: 10px;
+}
+
+
+.dashboard-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 10px 10px 10px 10px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+}
+
+.card h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.card h1 {
+    font-size: 36px;
+    color: #333;
+}
+
+.card p {
+    font-size: 16px;
+    color: #555;
+}
+
+/* Gauge Styles */
+.gauge-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    color: #333;
+}
+
+.info-icon {
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    padding: 2px 5px;
+    display: inline-block;
+}
+
+.gauge {
+    position: relative;
+    width: 150px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.gauge-background {
+    width: 100%;
+    height: 100%;
+    background-color: #eee;
+    border-radius: 150px 150px 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.gauge-arc {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #fdb750 0deg 48deg, #eee 48deg 180deg);
+    border-radius: 150px 150px 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.gauge-needle1 {
+    width: 2px;
+    height: 70px;
+    background-color: #333;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-25deg);
+    transform-origin: bottom;
+}
+
+.gauge-needle2 {
+    width: 2px;
+    height: 70px;
+    background-color: #333;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(75deg);
+    transform-origin: bottom;
+}
+
+.gauge-needle3 {
+    width: 2px;
+    height: 70px;
+    background-color: #333;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-25deg);
+    transform-origin: bottom;
+}
+
+.gauge-center {
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.gauge-labels {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+.gauge-labels .label {
+    font-size: 12px;
+    color: #333;
+}
+
+.gauge-value {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+
+/* Bar Chart */
+#turbineEfficiencyChart {
+    max-width: 100%;
+}
+
+.right-button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 10px 30px;
+    background-color: #d70f0f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.relative-container {
+    position: relative;
+    padding: 10px;
+    height: 50px;
+}

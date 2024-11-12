@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Grid Cyber Security Portal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #00ffff;
+            --secondary-color: #ff00ff;
+            --background-dark: #0a192f;
+            --text-color: #e6f1ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            perspective: 1000px;
+            background: 
+                linear-gradient(45deg, rgba(10, 25, 47, 0.9), rgba(10, 25, 47, 0.95)),
+                url('data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Cstyle%3E@keyframes pulse%7B0%25%7Bopacity:0.3%7D50%25%7Bopacity:0.6%7D100%25%7Bopacity:0.3%7D%7D%3C/style%3E%3Crect width="100" height="100" fill="%230a192f" /%3E%3Cg fill="%23ffffff" opacity="0.1" style="animation: pulse 3s infinite;"%3E%3Ccircle cx="20" cy="20" r="10"/%3E%3Ccircle cx="50" cy="50" r="15"/%3E%3Ccircle cx="80" cy="30" r="8"/%3E%3C/g%3E%3C/svg%3E');
+            background-size: cover;
+        }
+
+        .cyber-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            letter-spacing: 2px;
+            animation: glitch 2s infinite;
+        }
+
+        .container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .portal-btn {
+            position: relative;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-color);
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .portal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg, 
+                transparent, 
+                rgba(0, 255, 255, 0.3), 
+                transparent
+            );
+            transition: all 0.5s ease;
+        }
+
+        .portal-btn:hover::before {
+            left: 100%;
+        }
+
+        .portal-btn:hover {
+            transform: scale(1.1) rotateX(10deg);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .portal-btn:nth-child(1) { 
+            --btn-color: #ff00ff; 
+            border-color: #ff00ff;
+        }
+        .portal-btn:nth-child(2) { 
+            --btn-color: #00ffff; 
+            border-color: #00ffff;
+        }
+        .portal-btn:nth-child(3) { 
+            --btn-color: #ffff00; 
+            border-color: #ffff00;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            10% { transform: translate(-2px, -2px); }
+            20% { transform: translate(2px, 2px); }
+            30% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .cyber-title {
+                font-size: 1.8rem;
+            }
+            .portal-btn {
+                width: 250px;
+            }
+        }
+
+        /* Interactive Particle Background */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    
+    <h1 class="cyber-title">CyberSecurity Enabled Smart Grid Controller</h1>
+    
+    <div class="container">
+        <button class="portal-btn" onclick="navigateTo('Admin.html')">
+            Admin Portal
+        </button>
+        <button class="portal-btn" onclick="navigateTo('PowerOp.html')">
+            Power Operator
+        </button>
+        <button class="portal-btn" onclick="navigateTo('Consumer.html')">
+            Consumer Access
+        </button>
+    </div>
+
+    <script>
+        // Navigation Function
+        function navigateTo(page) {
+            try {
+                window.location.href = page;
+            } catch (error) {
+                console.error('Navigation Error:', error);
+                alert('Unable to navigate. Please try again.');
+            }
+        }
+
+        // Particle Animation
+        class Particle {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.setup();
+            }
+
+            setup() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        radius: Math.random() * 2,
+                        color: `rgba(0, 255, 255, ${Math.random()})`,
+                        speedX: (Math.random() - 0.5) * 2,
+                        speedY: (Math.random() - 0.5) * 2
+                    });
+                }
+                this.animate();
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach(particle => {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+
+                    // Wrap around
+                    if (particle.x < 0) particle.x = this.canvas.width;
+                    if (particle.x > this.canvas. width) particle.x = 0;
+                    if (particle.y < 0) particle.y = this.canvas.height;
+                    if (particle.y > this.canvas.height) particle.y = 0;
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(this.animate.bind(this));
+            }
+        }
+
+        // Initialize Particle Animation
+        const canvas = document.getElementById('particle-canvas');
+        new Particle(canvas);
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

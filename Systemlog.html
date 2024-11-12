@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Logging & Audit Trail System</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --log-color-info: #3498db;
+            --log-color-warning: #f39c12;
+            --log-color-error: #e74c3c;
+            --log-color-success: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            line-height: 1.6;
+        }
+
+        .logging-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .logging-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logging-dashboard {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+
+        .log-panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .log-table th, .log-table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .log-table thead {
+            background-color: #f8f9fa;
+        }
+
+        .log-type {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .log-type-info {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: var(--log-color-info);
+        }
+
+        .log-type-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--log-color-warning);
+        }
+
+        .log-type-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--log-color-error);
+        }
+
+        .log-type-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--log-color-success);
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-export {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .filter-panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .filter-group input, 
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .log-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .log-details-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="logging-container">
+        <div class="logging-header">
+            <h1>Comprehensive Logging & Audit Trail System</h1>
+            <div>
+                <button class="btn btn-primary" onclick="loggingSystem.simulateUserActivities()">
+                    Simulate Activities
+                </button>
+            </div>
+        </div>
+
+        <div class="logging-dashboard">
+            <!-- Log Table Panel -->
+            <div class="log-panel">
+                <div class="log-controls">
+                    <button class="btn btn-primary" onclick="loggingSystem.createManualLogEntry()">
+                        Create Manual Log
+                    </button>
+                    <button class="btn btn-export" onclick="loggingSystem.exportLogs()">
+                        Export Logs
+                    </button>
+                </div>
+
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event Type</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Severity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- Log entries will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <h3>Log Filters</h3>
+                <div class="filter-group">
+                    <label>Event Type</label>
+                    <select id="eventTypeFilter" onchange="loggingSystem.applyFilters()">
+                        <option value="">All Types</option>
+                        <option value="system">System</option>
+                        <option value="security">Security</option>
+                        <option value="user">User</option>
+                        <option value="network">Network</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Severity</label>
+                    <select id="severityFilter" onchange="loggingSystem.applyFilters()">
+                        <option value="">All Severities</option>
+                        <option value="info">Info</option>
+                        <option value="warning">Warning</option>
+                        <option value="error">Error</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Start Date</label>
+                    <input type="date" id="startDateFilter" onchange="loggingSystem.applyFilters()">
+                </div>
+
+                <div class="filter-group">
+                    <label>End Date</label>
+                    <input type="date" id="endDateFilter" onchange="loggingSystem.applyFilters()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Details Modal -->
+    <div id="logDetailsModal" class ="log-details-modal">
+        <div class="log-details-content">
+            <h2>Log Details</h2>
+            <p id="logDetails"></p>
+            <button class="btn btn-primary" onclick="loggingSystem.closeLogDetails()">Close</button>
+        </div>
+    </div>
+
+    <script>
+    class LoggingSystem {
+        constructor() {
+            this.logs = [];
+            this.initializeLocalStorage();
+            this.renderLogs();
+        }
+
+        initializeLocalStorage() {
+            if (!localStorage.getItem('systemLogs')) {
+                localStorage.setItem('systemLogs', JSON.stringify([]));
+            }
+            this.logs = JSON.parse(localStorage.getItem('systemLogs')) || [];
+        }
+
+        createLogEntry(eventType, action, severity, user = 'System') {
+            const logEntry = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                eventType,
+                action,
+                severity,
+                user
+            };
+            this.logs.push(logEntry);
+            this.saveLogs();
+            this.renderLogs();
+            return logEntry;
+        }
+
+        saveLogs() {
+            if (this.logs.length > 1000) {
+                this.logs = this.logs.slice(-1000);
+            }
+            localStorage.setItem('systemLogs', JSON.stringify(this.logs));
+        }
+
+        renderLogs(filteredLogs = this.logs) {
+            const logTableBody = document.getElementById('logTableBody');
+            logTableBody.innerHTML = '';
+            filteredLogs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.eventType}</td>
+                    <td>${log.user}</td>
+                    <td>${log.action}</td>
+                    <td><span class="log-type log-type-${log.severity}">${log.severity}</span></td>
+                    <td><button onclick="loggingSystem.showLogDetails(${log.id})">View</button></td>
+                `;
+                logTableBody.appendChild(row);
+            });
+        }
+
+        showLogDetails(id) {
+            const log = this.logs.find(log => log.id === id);
+            document.getElementById('logDetails').innerText = JSON.stringify(log, null, 2);
+            document.getElementById('logDetailsModal').style.display = 'flex';
+        }
+
+        closeLogDetails() {
+            document.getElementById('logDetailsModal').style.display = 'none';
+        }
+
+        applyFilters() {
+            const eventType = document.getElementById('eventTypeFilter').value;
+            const severity = document.getElementById('severityFilter').value;
+            const startDate = new Date(document.getElementById('startDateFilter').value);
+            const endDate = new Date(document.getElementById('endDateFilter').value);
+            
+            let filteredLogs = this.logs;
+
+            if (eventType) {
+                filteredLogs = filteredLogs.filter(log => log.eventType === eventType);
+            }
+            if (severity) {
+                filteredLogs = filteredLogs.filter(log => log.severity === severity);
+            }
+            if (startDate) {
+                filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
+            }
+            if (endDate) {
+                filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
+            }
+
+            this.renderLogs(filteredLogs);
+        }
+
+        simulateUserActivities() {
+            this.createLogEntry('system', 'System initialized', 'info');
+            this.createLogEntry('user', 'User login successful', 'info', 'Alice');
+            this.createLogEntry('security', 'Failed login attempt', 'warning', 'Bob');
+            this.createLogEntry('user', 'Data export complete', 'info', 'Charlie');
+            this.createLogEntry('network', 'Network connection lost', 'error');
+            this.createLogEntry('user', 'User account updated', 'info', 'Alice');
+        }
+
+        createManualLogEntry() {
+            const eventType = prompt("Enter Event Type:");
+            const action = prompt("Enter Action:");
+            const severity = prompt("Enter Severity (info/warning/error/critical):");
+            this.createLogEntry(eventType, action, severity);
+        }
+
+        exportLogs() {
+            const logsJSON = JSON.stringify(this.logs, null, 2);
+            const blob = new Blob([logsJSON], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logs.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    }
+
+    const loggingSystem = new LoggingSystem();
+    </script>
+</body>
+</html>

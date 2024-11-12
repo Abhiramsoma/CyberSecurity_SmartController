@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Electricity Management System - Notifications</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 300px;
+        }
+
+        .notification-item {
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .notification-item.show {
+            opacity: 1;
+        }
+
+        .alert-consumption {
+            background-color: #ffecb3;
+            border-left: 5px solid #ffc107;
+        }
+
+        .alert-billing {
+            background-color: #e6f2ff;
+            border-left: 5px solid #2196F3;
+        }
+
+        .alert-overdue {
+            background-color: #ffdddd;
+            border-left: 5px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer">
+        <!-- Notifications will be dynamically added here -->
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Notifications Section -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Notification Settings
+                    </div>
+                    <div class="card-body">
+                        <h5>Alert Preferences</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="consumptionAlerts" checked>
+                            <label class="form-check-label" for="consumptionAlerts">
+                                Consumption Alerts
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="billingAlerts" checked>
+                            <label class="form-check-label" for="billingAlerts">
+                                Billing Reminders
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="overdueAlerts" checked>
+                            <label class="form-check-label" for="overdueAlerts">
+                                Overdue Payment Alerts
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consumption Monitoring -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Consumption Monitoring
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Monthly Consumption Limit (kWh)</label>
+                            <input type="number" class="form-control" id="consumptionLimit" value="500">
+                        </div>
+                        <button class="btn btn-primary" id="updateLimitBtn">Update Limit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consumption and Billing Details -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        Electricity Consumption Details
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5>Current Month</h5>
+                                <p id="currentConsumption">0 kWh</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Monthly Limit</h5>
+                                <p id="monthlyLimit">500 kWh</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Remaining</h5>
+                                <p id="remainingConsumption">500 kWh</p>
+                            </div>
+                        </div>
+                        <div class="progress mt-3">
+                            <div class="progress-bar" role="progressbar" id="consumptionProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Reminders -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Upcoming Bills
+                    </div>
+                    <div class="card-body" id="upcomingBillsContainer">
+                        <!-- Dynamic billing reminders will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script>
+    class NotificationSystem {
+        constructor() {
+            this.notificationContainer = document.getElementById('notificationContainer');
+            this.consumptionLimit = 500; // Default limit in kWh
+            this.currentConsumption = 0;
+
+            this.initializeEventListeners();
+            this.startConsumptionMonitoring();
+            this.generateBillingReminders();
+        }
+
+        initializeEventListeners() {
+            document.getElementById('updateLimitBtn').addEventListener('click', () => {
+                const newLimit = document.getElementById('consumptionLimit').value;
+                this.updateConsumptionLimit(parseInt(newLimit));
+            });
+        }
+
+        updateConsumptionLimit(newLimit) {
+            this.consumptionLimit = newLimit;
+            document.getElementById('monthlyLimit').textContent = `${newLimit} kWh`;
+            this.updateConsumptionProgress();
+            this.createNotification('Consumption Limit Updated', 'Your monthly consumption limit has been updated.', 'alert-billing');
+        }
+
+        startConsumptionMonitoring() {
+            // Simulate consumption increase
+            setInterval(() => {
+                this.currentConsumption += Math.floor(Math.random() * 10);
+                this.updateConsumptionProgress();
+                this.checkConsumptionAlerts();
+            }, 5000);
+        }
+
+        updateConsumptionProgress() {
+            const currentConsumptionElement = document.getElementById('currentConsumption');
+            const remainingConsumptionElement = document.getElementById('remainingConsumption');
+            const progressBar = document.getElementById('consumptionProgressBar');
+
+            currentConsumptionElement.textContent = `${this.currentConsumption} kWh`;
+            
+            const remainingConsumption = Math.max(this.consumptionLimit - this.currentConsumption, 0);
+            remainingConsumptionElement.textContent = `${remainingConsumption} kWh`;
+
+            const progressPercentage = (this.currentConsumption / this.consumptionLimit) * 100;
+            progressBar.style.width = `${Math.min(progressPercentage, 100)}%`;
+            progressBar.classList.toggle('bg-danger', progressPercentage > 80);
+        }
+
+        checkConsumptionAlerts() {
+            const consumptionAlertsEnabled = document.getElementById('consumptionAlerts').checked;
+            
+            if (!consumptionAlertsEnabled) return;
+
+            if (this.currentConsumption >= this.consumptionLimit *  1.2) {
+                this.createNotification('High Consumption Alert', 'You have exceeded your consumption limit by 20%.', 'alert-consumption');
+            } else if (this.currentConsumption > this.consumptionLimit) {
+                this.createNotification('Consumption Limit Exceeded', 'You have exceeded your monthly consumption limit.', 'alert-consumption');
+            }
+        }
+
+        createNotification(title, message, alertClass) {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = `notification-item ${alertClass} show`;
+            notificationItem.innerHTML = `<strong>${title}</strong><p>${message}</p>`;
+            this.notificationContainer.appendChild(notificationItem);
+
+            setTimeout(() => {
+                notificationItem.classList.remove('show');
+                setTimeout(() => {
+                    this.notificationContainer.removeChild(notificationItem);
+                }, 500);
+            }, 5000);
+        }
+
+        generateBillingReminders() {
+            const upcomingBillsContainer = document.getElementById('upcomingBillsContainer');
+            const reminders = [
+                { date: '2023-10-15', amount: 125.50 },
+                { date: '2023-11-15', amount: 135.75 },
+                { date: '2023-12-15', amount: 145.25 }
+            ];
+
+            reminders.forEach(reminder => {
+                const reminderDiv = document.createElement('div');
+                reminderDiv.className = 'alert alert-info';
+                reminderDiv.innerHTML = `Bill due on <strong>${reminder.date}</strong>: $${reminder.amount.toFixed(2)}`;
+                upcomingBillsContainer.appendChild(reminderDiv);
+            });
+        }
+    }
+
+    const notificationSystem = new NotificationSystem();
+    </script>
+</body>
+</html>

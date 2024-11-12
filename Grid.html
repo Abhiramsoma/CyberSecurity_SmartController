@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Power Operator Grid Management System</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --background-dark: #2c3e50;
+            --background-light: #ecf0f1;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .power-grid-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid-control-panel {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-status-indicators {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+
+        .status-dot-green {
+            background-color: #2ecc71;
+        }
+
+        .status-dot-red {
+            background-color: #e74c3c;
+        }
+
+        .status-dot-yellow {
+            background-color: #f39c12;
+        }
+
+        .power-grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .power-grid-item {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .power-grid-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .grid-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .power-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .power-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            width: 600px;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="power-grid-container">
+        <!-- Control Panel -->
+        <div class="grid-control-panel">
+            <div class="grid-status-indicators">
+                <div class="status-indicator">
+                    <div class="status-dot status-dot-green"></div>
+                    <span>Grid Operational</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot status-dot-yellow"></div>
+                    <span>Load Balancing</span>
+                </div>
+            </div>
+            <div>
+                <button class="power-btn btn-primary" onclick="powerGridOperator.openAddGridModal()">
+                    Add Grid Station
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid Layout -->
+        <div id="powerGridLayout" class="power-grid-layout">
+            <!-- Dynamic Grid Stations Will Render Here -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Grid Station Modal -->
+    <div id="gridStationModal" class="modal">
+        <div class="modal-content">
+            <h2>Grid Station Configuration</h2>
+            <form id="gridStationForm">
+                <input type="text" id="stationName" placeholder="Station Name" required>
+                <select id="stationType">
+                    <option value="solar">Solar Station</option>
+                    <option value="wind">Wind Station</option>
+                    <option value="hydro">Hydro Station</option>
+                    <option value="thermal">Thermal Station</option>
+                </select>
+                <input type="number" id="maxCapacity" placeholder="Max Capacity (MW)" required>
+                <input type="number" id="currentOutput" placeholder="Current Output (MW)">
+                <button type="submit" class="power-btn btn-primary">Save Station</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    class PowerGridOperator {
+        constructor() {
+            this.gridStations = [];
+            this.initializeEventListeners();
+            this.loadGridStations();
+        }
+
+        initializeEventListeners() {
+            const form = document.getElementById('gridStationForm');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleGridStationSubmission();
+            });
+        }
+
+        handleGridStationSubmission() {
+            const stationName = document.getElementById('stationName').value;
+            const stationType = document.getElementById('stationType').value;
+            const maxCapacity = parseFloat(document.getElementById('maxCapacity').value);
+            const currentOutput = parseFloat(document.getElementById('currentOutput').value);
+
+            const newStation = {
+                id: Date.now(),
+                name: stationName,
+                type: stationType,
+                maxCapacity,
+                currentOutput,
+                status: this.calculateStationStatus(currentOutput, maxCapacity)
+            };
+
+            this.gridStations.push(newStation);
+            this.renderGridStations();
+            this.saveGridStations();
+            this.closeModal('gridStationModal');
+        }
+
+        calculateStationStatus(currentOutput, maxCapacity) {
+            const utilizationPercentage = (currentOutput / maxCapacity) * 100;
+            
+            if (utilizationPercentage < 30) return 'low';
+            if (utilizationPercentage < 70) return 'medium';
+            return 'high';
+        }
+
+        renderGridStations() {
+            const gridLayout = document.getElementById('powerGridLayout');
+            gridLayout.innerHTML = '';
+
+            this.gridStations.forEach(station => {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('power-grid-item');
+                gridItem.innerHTML = `
+                    <div class="grid-item-header">
+                        <h3>${station.name}</h3>
+                        <span class="station-type">${station .type}</span>
+                    </div>
+                    <div class="power-details">
+                        <div><strong>Max Capacity:</strong> ${station.maxCapacity} MW</div>
+                        <div><strong>Current Output:</strong> ${station.currentOutput} MW</div>
+                        <div><strong>Status:</strong> ${station.status}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button onclick="powerGridOperator.editGridStation(${station.id})" class="power-btn btn-primary">Edit</button>
+                        <button onclick="powerGridOperator.deleteGridStation(${station.id})" class="power-btn btn-danger">Delete</button>
+                    </div>
+                `;
+
+                gridLayout.appendChild(gridItem);
+            });
+        }
+
+        loadGridStations() {
+            const storedStations = JSON.parse(localStorage.getItem('gridStations'));
+            if (storedStations) {
+                this.gridStations = storedStations;
+                this.renderGridStations();
+            }
+        }
+
+        saveGridStations() {
+            localStorage.setItem('gridStations', JSON.stringify(this.gridStations));
+        }
+
+        openAddGridModal() {
+            document.getElementById('gridStationModal').style.display = 'flex';
+        }
+
+        closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.getElementById('gridStationForm').reset();
+        }
+
+        editGridStation(id) {
+            const station = this.gridStations.find(station => station.id === id);
+            if (station) {
+                document.getElementById('stationName').value = station.name;
+                document.getElementById('stationType').value = station.type;
+                document.getElementById('maxCapacity').value = station.maxCapacity;
+                document.getElementById('currentOutput').value = station.currentOutput;
+                this.openEditModal(id);
+            }
+        }
+
+        openEditModal(id) {
+            document.getElementById('gridStationModal').style.display = 'flex';
+            document.getElementById('gridStationForm').onsubmit = (e) => {
+                e.preventDefault();
+                this.updateGridStation(id);
+            };
+        }
+
+        updateGridStation(id) {
+            const stationName = document.getElementById('stationName').value;
+            const stationType = document.getElementById('stationType').value;
+            const maxCapacity = parseFloat(document.getElementById('maxCapacity').value);
+            const currentOutput = parseFloat(document.getElementById('currentOutput').value);
+
+            const index = this.gridStations.findIndex(station => station.id === id);
+            if (index !== -1) {
+                this.gridStations[index] = {
+                    ...this.gridStations[index],
+                    name: stationName,
+                    type: stationType,
+                    maxCapacity,
+                    currentOutput,
+                    status: this.calculateStationStatus(currentOutput, maxCapacity)
+                };
+                this.renderGridStations();
+                this.saveGridStations();
+                this.closeModal('gridStationModal');
+            }
+        }
+
+        deleteGridStation(id) {
+            this.gridStations = this.gridStations.filter(station => station.id !== id);
+            this.renderGridStations();
+            this.saveGridStations();
+        }
+    }
+
+    const powerGridOperator = new PowerGridOperator();
+    </script>
+</body>
+</html>

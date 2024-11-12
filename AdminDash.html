@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microgrid Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ccc;
+            border-radius: 10px;
+        }
+        .progress-bar div {
+            width: 50%;
+            height: 10px;
+            background-color: #00C49F;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Microgrid Admin Dashboard</h1>
+          
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px;">
+            <div class="card">
+                <h4>Total Energy Production</h4>
+                <div>45.2 kWh</div>
+                <small>+20.1% from last period</small>
+            </div>
+            <div class="card">
+                <h4>Battery Status</h4>
+                <div>50.0%</div>
+                <div class="progress-bar">
+                    <div style="width: 50%; background-color: #00C49F;"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h4>Grid Dependency</h4>
+                <div>15%</div>
+                <small>-5% from last period</small>
+            </div>
+            <div class="card">
+                <h4>Current Load</h4>
+                <div>100.0 kW</div>
+                <small>Peak: 180.5 kW</small>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div class="card">
+                <h4>Energy Production vs Consumption</h4>
+                <canvas id="lineChart" width="400" height="300"></canvas>
+            </div>
+            <div class="card">
+                <h4>Current Energy Mix</h4>
+                <canvas id="pieChart" width="400" height="250"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>System Controls</h4>
+            <div>
+                <span>Grid-Tie Status:</span>
+                <input type="checkbox" checked>
+            </div>
+            <div>
+                <span>Battery Discharge Rate:</span>
+                <input type="range" value="50" max="100">
+            </div>
+            <button>Optimize Energy Usage</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Line chart
+        const ctx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+                datasets: [{
+                    label: 'Solar',
+                    data: [10, 20, 30, 40, 50, 60, 70.77, 80, 90, 100, 110, 120, 135.70, 140, 150, 160, 170, 180, 19.60, 200, 210, 220, 230, 240],
+                    borderColor: '#FFBB28',
+                    fill: false
+                }, {
+                    label: 'Wind',
+                    data: [20, 90.9, 40, 50, 60, 50.6, 80.7, 90, 100, 110.5, 220, 130, 140, 150, 160, 1, 180, 190, 90, 210, 220, 230, 240, 250],
+                    borderColor: '#00C49F',
+                    fill: false
+                }, {
+                    label: 'Grid',
+                    data: [30, 40, 50, 60, 70, 80, 90, 100, 210.7, 120, 130, 140, 150, 160, 170, 180, 190, 350.30, 210, 220, 230, 240, 250, 260],
+                    borderColor: '#0088FE',
+                    fill: false
+                }, {
+                    label: 'Consumption',
+                    data: [40, 50, 60, 70, 80, 90, 100, 110, 120, 230.44, 140, 150, 90, 170, 60, 190, 200, 210, 220, 230, 240, 250, 260, 270],
+                    borderColor: '#FF8042',
+                    fill: false
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Energy Production vs Consumption'
+                }
+            }
+        });
+
+        // Pie chart
+        const ctx2 = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['Solar', 'Wind', 'Grid', 'Battery'],
+                datasets: [{
+                    data: [25, 25, 25, 25],
+                    backgroundColor: ['#FFBB28', '#00C49F', '#0088FE', '#8884d8']
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Current Energy Mix'
+                }
+            }
+        });
+    </script>
+</body>
+</html>      
